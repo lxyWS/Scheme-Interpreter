@@ -147,7 +147,7 @@ Expr List::parse(Assoc &env) {
                                     throw RuntimeError("Variable Amount Error");
                             }
                             Expr last_expr = stxs[2].get()->parse(cur_env);
-                            return Expr(new Let(bind, last_expr));
+                            return Expr(new Let(bind, stxs[2].get()->parse(cur_env)));
                         } else
                             throw RuntimeError("Variable Amount Error");
                     } else
