@@ -107,6 +107,7 @@ Expr List::parse(Assoc &env) {
                                     x.push_back(v_ptr->x);
                                     // lambda表达式最初创建时，x、y未赋值，只是个形参
                                     // （具体值应该是在closure后面的expr*zh绑定的吧，需要测试能否正常运行）
+                                    //cur_env = extend(v_ptr->x, Value(), cur_env);  这里不能用默认构造，测试出不行
                                     cur_env = extend(v_ptr->x, NullV(), cur_env);
                                 } else {
                                     throw RuntimeError("Not A Var");
@@ -136,6 +137,7 @@ Expr List::parse(Assoc &env) {
                                             Identifier *id_ptr = dynamic_cast<Identifier *>(temp_lst->stxs[0].get());
                                             string var_name = id_ptr->s;
                                             Expr expr = temp_lst->stxs[1].get()->parse(env);
+                                            // cur_env = extend(v_ptr->x, Value(), cur_env);
                                             cur_env = extend(var_name, NullV(), cur_env);
                                             bind.push_back(std::make_pair(var_name, expr));
                                             // 第一次绑定，变量无法使用
@@ -146,7 +148,7 @@ Expr List::parse(Assoc &env) {
                                 } else
                                     throw RuntimeError("Variable Amount Error");
                             }
-                            Expr last_expr = stxs[2].parse(cur_env);
+                            Expr last_expr = stxs[2].get()->parse(cur_env);
                             return Expr(new Let(bind, last_expr));
                         } else
                             throw RuntimeError("Variable Amount Error");
@@ -172,13 +174,16 @@ Expr List::parse(Assoc &env) {
                                             string var_name = id_ptr->s;
                                             // Expr expr = temp_lst->stxs[1].get()->parse(env);
                                             // bind.push_back(std::make_pair(var_name, expr));
-                                            cur_env1 = extend(var_name, Value(), cur_env1);
+
+                                            // cur_env1 = extend(var_name, Value(), cur_env1);
+                                            cur_env1 = extend(var_name, NullV(), cur_env1);
                                         } else
                                             throw RuntimeError("Var Error");
                                     } else
                                         throw RuntimeError("Var and Expr Error");
-                                } else
+                                } else {
                                     throw RuntimeError("List Error");
+                                }
                             }
 
                             // for (const auto stx: lst_ptr->stxs) {
