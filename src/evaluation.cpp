@@ -14,10 +14,10 @@ extern std::map<std::string, ExprType> primitives;
 extern std::map<std::string, ExprType> reserved_words;
 
 Value Let::eval(Assoc &env) {
-    Assoc cur_env=env;
-    std::vector<std::string>vars;
+    Assoc cur_env = env;
+    std::vector<std::string> vars;
     // 检查是否有变量名重复
-    for(auto c:bind) {
+    for (auto c: bind) {
         // 检查变量命名是否规范
         if (c.first.size() == 0) {
             throw RuntimeError("Var Error");
@@ -32,8 +32,8 @@ Value Let::eval(Assoc &env) {
             }
         }
         vars.push_back(c.first);
-        cur_env=extend(c.first,c.second->eval(env),cur_env);
-        if(std::count(vars.begin(),vars.end(),c.first)>1) {
+        cur_env = extend(c.first, c.second->eval(env), cur_env);
+        if (std::count(vars.begin(), vars.end(), c.first) > 1) {
             throw RuntimeError("Repeated Vars");
         }
     }
@@ -77,7 +77,37 @@ Value Apply::eval(Assoc &e) {
 } // for function calling
 
 Value Letrec::eval(Assoc &env) {
+    Assoc cur_env1 = env;
+    Assoc cur_env2 = env;
+    std::vector<std::string> vars;
+    for (auto c: bind) {
+        // 检查变量命名是否规范
+        if (c.first.size() == 0) {
+            throw RuntimeError("Var Error");
+        }
+        // 命名规则必须满足
+        if (isdigit(c.first[0]) || c.first[0] == '.' || c.first[0] == '@') {
+            throw RuntimeError("Banned Name");
+        }
+        for (auto c: c.first) {
+            if (c == '#' || c == '\'' || c == '\"' || c == '`') {
+                throw RuntimeError("Banned Name");
+            }
+        }
 
+        vars.push_back(c.first);
+        // 将var*与Value(nullptr)绑定，引入env1
+        cur_env1 = extend(c.first, Value(), cur_env1);
+        if (std::count(vars.begin(), vars.end(), c.first) > 1) {
+            throw RuntimeError("Repeated Vars");
+        }
+    }
+
+    // env2作用域，expr*是在env1下求值的
+    for (auto c: bind) {
+        cur_env2 = extend(c.first, c.second->eval(cur_env1), cur_env2);
+    }
+    return body->eval(cur_env2);
 } // letrec expression
 
 Value Var::eval(Assoc &e) {
@@ -461,3 +491,4 @@ Value Cdr::evalRator(const Value &rand) {
 
     throw RuntimeError("Type Error");
 } // cdr
+
