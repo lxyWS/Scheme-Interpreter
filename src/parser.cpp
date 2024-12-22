@@ -107,7 +107,7 @@ Expr List::parse(Assoc &env) {
                                     x.push_back(v_ptr->x);
                                     // lambda表达式最初创建时，x、y未赋值，只是个形参
                                     // （具体值应该是在closure后面的expr*zh绑定的吧，需要测试能否正常运行）
-                                    cur_env = extend(v_ptr->x, Value(), cur_env);
+                                    cur_env = extend(v_ptr->x, NullV(), cur_env);
                                 } else {
                                     throw RuntimeError("Not A Var");
                                 }
@@ -116,7 +116,7 @@ Expr List::parse(Assoc &env) {
                             Expr temp_expr = stxs[2]->parse(cur_env);
                             return Expr(new Lambda(x, temp_expr));
                         } else
-                        throw RuntimeError("Variable Error");
+                            throw RuntimeError("Variable Error");
                     } else
                         throw RuntimeError("Variable Amount Error");
                     break;
@@ -136,7 +136,7 @@ Expr List::parse(Assoc &env) {
                                             Identifier *id_ptr = dynamic_cast<Identifier *>(temp_lst->stxs[0].get());
                                             string var_name = id_ptr->s;
                                             Expr expr = temp_lst->stxs[1].get()->parse(env);
-                                            cur_env = extend(var_name, Value(), cur_env);
+                                            cur_env = extend(var_name, NullV(), cur_env);
                                             bind.push_back(std::make_pair(var_name, expr));
                                             // 第一次绑定，变量无法使用
                                         } else
