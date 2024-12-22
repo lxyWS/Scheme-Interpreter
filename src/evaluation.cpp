@@ -103,9 +103,11 @@ Value Letrec::eval(Assoc &env) {
         }
     }
 
+    cur_env2 = cur_env1;
     // env2作用域，expr*是在env1下求值的
-    for (auto c: bind) {
-        cur_env2 = extend(c.first, c.second->eval(cur_env1), cur_env2);
+    for (const auto &c: bind) {
+        // cur_env2 = extend(c.first, c.second->eval(cur_env1), cur_env2);
+        modify(c.first, c.second->eval(cur_env1), cur_env2);
     }
     return body->eval(cur_env2);
 } // letrec expression
@@ -491,4 +493,3 @@ Value Cdr::evalRator(const Value &rand) {
 
     throw RuntimeError("Type Error");
 } // cdr
-
