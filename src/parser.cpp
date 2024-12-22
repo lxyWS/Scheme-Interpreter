@@ -115,10 +115,10 @@ Expr List::parse(Assoc &env) {
                             // 注意求值应该是在新作用域下，否则找不到对应变量
                             Expr temp_expr = stxs[2]->parse(cur_env);
                             return Expr(new Lambda(x, temp_expr));
-                        }
+                        } else
                         throw RuntimeError("Variable Error");
-                    }
-                    throw RuntimeError("Variable Amount Error");
+                    } else
+                        throw RuntimeError("Variable Amount Error");
                     break;
                 }
 
@@ -136,9 +136,9 @@ Expr List::parse(Assoc &env) {
                                             Identifier *id_ptr = dynamic_cast<Identifier *>(temp_lst->stxs[0].get());
                                             string var_name = id_ptr->s;
                                             Expr expr = temp_lst->stxs[1].get()->parse(env);
+                                            cur_env = extend(var_name, Value(), cur_env);
                                             bind.push_back(std::make_pair(var_name, expr));
                                             // 第一次绑定，变量无法使用
-                                            cur_env = extend(var_name, Value(), cur_env);
                                         } else
                                             throw RuntimeError("Var Error");
                                     } else
@@ -181,21 +181,22 @@ Expr List::parse(Assoc &env) {
                                     throw RuntimeError("List Error");
                             }
 
+                            // for (const auto stx: lst_ptr->stxs) {
+                            //     // 条件之前已经判断过了
+                            //     List *temp_lst = dynamic_cast<List *>(stx.get());
+                            //     Identifier *id_ptr = dynamic_cast<Identifier *>(temp_lst->stxs[0].get());
+                            //     // 在env1下对expr*求值
+                            //     Expr expr = temp_lst->stxs[1].get()->parse(cur_env1);
+                            //     // 绑定到env2
+                            //     cur_env2 = extend(id_ptr->s, expr->eval(cur_env1), cur_env2);
+                            // }
                             for (const auto stx: lst_ptr->stxs) {
-                                // 条件之前已经判断过了
                                 List *temp_lst = dynamic_cast<List *>(stx.get());
                                 Identifier *id_ptr = dynamic_cast<Identifier *>(temp_lst->stxs[0].get());
-                                // 在env1下对expr*求值
-                                Expr expr = temp_lst->stxs[1].get()->parse(cur_env1);
-                                // 绑定到env2
-                                cur_env2 = extend(id_ptr->s, expr->eval(cur_env1), cur_env2);
+                                Expr expr = temp_lst->stxs[1]->parse(cur_env1);
+                                bind.push_back(std::make_pair(id_ptr->s, expr));
                             }
-                            for (const auto stx: lst_ptr->stxs) {
-                                List *temp_lst = dynamic_cast<List *>(stx.get());
-                                Identifier *id_ptr = dynamic_cast<Identifier *>(temp_lst->stxs[0].get());
-                                bind.push_back(std::make_pair(id_ptr->s, temp_lst->stxs[1].get()->parse(cur_env2)));
-                            }
-                            Expr last_expr = stxs[2].get()->parse(cur_env2);
+                            Expr last_expr = stxs[2]->parse(cur_env1);
                             return Expr(new Letrec(bind, last_expr));
                         } else
                             throw RuntimeError("List Error");
