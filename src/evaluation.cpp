@@ -89,8 +89,8 @@ Value Letrec::eval(Assoc &env) {
         if (isdigit(c.first[0]) || c.first[0] == '.' || c.first[0] == '@') {
             throw RuntimeError("Banned Name");
         }
-        for (auto c: c.first) {
-            if (c == '#' || c == '\'' || c == '\"' || c == '`') {
+        for (auto c1: c.first) {
+            if (c1 == '#' || c1 == '\'' || c1 == '\"' || c1 == '`') {
                 throw RuntimeError("Banned Name");
             }
         }
@@ -103,11 +103,19 @@ Value Letrec::eval(Assoc &env) {
         }
     }
 
+    std::vector<Value>values;
+    for(const auto& c:bind) {
+        values.push_back(c.second->eval(cur_env1));
+    }
+
     cur_env2 = cur_env1;
     // env2作用域，expr*是在env1下求值的
-    for (const auto &c: bind) {
-        // cur_env2 = extend(c.first, c.second->eval(cur_env1), cur_env2);
-        modify(c.first, c.second->eval(cur_env1), cur_env2);
+    // for (const auto &c: bind) {
+    // cur_env2 = extend(c.first, c.second->eval(cur_env1), cur_env2);
+    //     modify(c.first, c.second->eval(cur_env1), cur_env2);
+    // }
+    for(int i=0;i<values.size();i++) {
+        modify(bind[i].first,values[i],cur_env2);
     }
     return body->eval(cur_env2);
 } // letrec expression
